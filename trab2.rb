@@ -13,9 +13,12 @@ class Operations
     end
 end
 
+$nNodes = 0
 $endNode = 0
+$startNode
 $data = Array.new # array that receive the data from input file
-$opHash =  Hash.new
+$opHashKeys =  Hash.new
+$opHashRoute =  Hash.new
 
 
 #TODO: Read from stdin
@@ -37,7 +40,7 @@ def createKeys(keyvalue)
     max = keyvalue - 1
     max.downto(0) { 
         |i| 
-        if($opHash[i] == nil || $opHash[i] == "")
+        if($opHashKeys[i] == nil || $opHashKeys[i] == "")
             keys.push(i)
         else
             break
@@ -48,19 +51,96 @@ end
 
 def updateTable (keyValue)
     for i in (keyValue + 1)  .. $endNode
-        if($opHash[i] != nil && $opHash[i] != "")
-            $opHash[i] = createKeys(i)
+        if($opHashKeys[i] != nil && $opHashKeys[i] != "")
+            $opHashKeys[i] = createKeys(i)
             break
         end
     end
 end
 
+#Cria tabela de rotas
+def createRouteTable(index)
+    logValue = Math::log($nNodes, 2)
+    logValue = logValue.floor
+    puts "Log : #{logValue}"
+    i = 0
+    auxIndex = index
+    if(auxIndex == $endNode)
+        auxIndex = -1
+    end
+    nodeOption = index + (2**i) 
+    arrayRoutes = Array.new
+    while (nodeOption <= $endNode && arrayRoutes.size < logValue) do
+        puts ("Array Size: #{arrayRoutes.size}")
+        for indexOfHash in nodeOption .. $endNode
+            if($opHashKeys[indexOfHash] != nil && $opHashKeys[indexOfHash] != "" && indexOfHash != index)
+                arrayRoutes.push(indexOfHash)
+                arrayRoutes = arrayRoutes.uniq
+                break
+            end
+        end
+        i+=1
+        nodeOption = auxIndex + (2**i) 
+    end
+    return arrayRoutes
+end
+
+def updateRouteTable (keyValue)
+    max = keyValue - 1
+    max.downto($startNode){
+        |i|
+        if($opHashRoute[i] != nil && $opHashRoute[i] != "")
+            $opHashRoute[i] = createRouteTable(i)
+            break
+        end
+    }
+end
+
+# Put value in hash and update table
 def createHash(operation)
-    $opHash[Integer(operation.operationElement)] = createKeys(Integer(operation.operationElement))
+    $opHashKeys[Integer(operation.operationElement)] = createKeys(Integer(operation.operationElement))
+    $opHashRoute[Integer(operation.operationElement)] = createRouteTable(Integer(operation.operationElement))
     if(Integer(operation.operationElement) > $endNode)
         $endNode = Integer(operation.operationElement)
     end
+    if($startNode == nil || Integer(operation.operationElement) < $startNode)
+        $startNode = Integer(operation.operationElement)
+    end
+    
     updateTable(Integer(operation.operationElement))
+    updateRouteTable(Integer(operation.operationElement))
+end
+
+# Remove value in hash and update table
+def removeHash(operation)
+    keysArray = $opHashKeys[Integer(operation.operationElement)]
+    starter = Integer(operation.operationElement) + 1
+    if(starter == $endNode)
+        for i in  ($endNode - 1) .. 0
+            if($opHashKeys[i] != nil && $opHashKeys[i] != "")
+                $endNode = i
+                break
+            end
+        end
+    else
+        for i in  starter .. $endNode
+            if($opHashKeys[i] != nil && $opHashKeys[i] != "")
+                auxArray = $opHashKeys[i]
+                auxArray.concat keysArray
+                auxArray.sort! {|x, y| y <=> x}
+                $opHashKeys[i] = auxArray
+                if($startNode == starter)
+                    $startNode = i
+                end
+                break
+            end
+        end
+    end
+    
+    $opHashKeys.delete(Integer(operation.operationElement))
+    $opHashRoute.delete(Integer(operation.operationElement))
+    
+    updateRouteTable(Integer(operation.operationElement))
 end
 
 
@@ -72,12 +152,20 @@ def testDataReceived
         puts operation.operation
         puts operation.operationElement
         if(operation.operation == "E")
+             $nNodes+=1
             createHash(operation)
-        end    
+           
+        elsif(operation.operation == "S")
+            $nNodes-=1
+            removeHash(operation)
+        end   
     }
 end
 
 readFile
 testDataReceived
 
-puts $opHash
+puts "--------------"
+puts $nNodes
+puts $opHashKeys
+puts $opHashRoute
