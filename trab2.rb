@@ -21,7 +21,6 @@ $output = Array.new # array that receive the output to write
 $route = Array.new # array that receive the route
 $opHashKeys =  Hash.new
 $opHashRoute =  Hash.new
-$tOutput  = Array.new # array that receive the output of type T to write
 
 
 #TODO: Read from stdin
@@ -193,8 +192,6 @@ end
 
 def lookup(nodeRoute, id, findValue, firstElement)
     keysArray = $opHashKeys[nodeRoute]
-    routeArray =  $opHashRoute[nodeRoute]
-    $tOutput.push("#{id} T #{nodeRoute} {#{routeArray.join(",")}}")
     if keysArray.include?(findValue)
         outputString = "#{id} L #{findValue} {#{$route.join(",")}}"
         $output.push(outputString)
@@ -251,7 +248,7 @@ def testDataReceived
             $route = Array.new
         elsif(operation.operation == "L")
             lookup(Integer(operation.operationElement),operation.operationId,Integer(operation.operationElement2), operation.operationElement)
-            writeFile
+            writeFile(operation.operationId)
             $route = Array.new
             $output = Array.new
             $tOutput = Array.new
@@ -260,14 +257,17 @@ def testDataReceived
     }
 end
 
-def writeFile
+def writeFile(id)
     $output.each {
         |result|
         puts result
     }
-    $tOutput.each {
-        |result|
-        puts result
+    keys = $opHashRoute.keys 
+    keys = keys.sort
+    keys.each {
+        |key|
+        routes = $opHashRoute[key]
+        puts "#{id} T #{key} {#{routes.join(",")}}"
     }
 end
 
