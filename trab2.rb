@@ -87,26 +87,22 @@ def createRouteTable(index)
     logValue = logValue.floor
     i = 0
     auxIndex = index
-    if(auxIndex == $endNode)
-        auxIndex = -1
-    end
-    nodeOption = auxIndex + (2**i) 
+    #if(auxIndex == $endNode)
+    #    auxIndex = -1
+   # end
+    mValue = $endNode.to_s(2).length
+    nodeOption = (auxIndex + (2**i)) % (2**mValue)
     arrayRoutes = Array.new
     while ($nNodes > 1 && arrayRoutes.size < logValue) do
         for indexOfHash in nodeOption .. $endNode
-            if($opHashKeys[indexOfHash] != nil && $opHashKeys[indexOfHash] != "" )
+            if($opHashKeys[indexOfHash] != nil && $opHashKeys[indexOfHash] != "")
                 arrayRoutes.push(indexOfHash)
                 arrayRoutes = arrayRoutes.uniq
                 break
             end
         end
         i+=1
-        nodeOption = auxIndex + (2**i) 
-        if(nodeOption > $endNode)
-           auxIndex = -1
-           i = 0
-           nodeOption = auxIndex + (2**i) 
-        end
+        nodeOption = (auxIndex + (2**i)) % (2**mValue)
     end
     return arrayRoutes.sort
 end
