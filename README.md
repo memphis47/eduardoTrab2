@@ -31,7 +31,7 @@ Para compilar basta executar make:
  
 Para a execução do Programa basta executar:  
  
-        $ ./mydht <teste.in> <teste.out> 
+        $ ./mydht <teste.in> teste.out
  
  
 #Bugs 
