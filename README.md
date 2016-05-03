@@ -1,6 +1,6 @@
 #Introdução 
  
-Relatório   para   a   disciplina   ​
+README   para   a   disciplina   ​
 CI763   (Gerenciamento   de   Dados   Distribuídos)   ​
 sobre   o  
 trabalho Tabela Hash Distribuída (DHT). 
