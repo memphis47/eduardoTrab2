@@ -1,5 +1,7 @@
 # This program was created by Rafael Rocha de Carvalho for the class of Distributed Data Management taught at UFPR by Professor Eduardo Almeida. 
 # This code is intended to implement the DHT using a test.in input file and writing the output to file test.out
+
+# Class to represent the opertions of .in file
 class Operations
     
     attr_accessor :operationId, :operation, :operationElement, :operationElement2 
@@ -13,17 +15,17 @@ class Operations
     end
 end
 
-$nNodes = 0
-$endNode = 0
-$startNode = nil
+$nNodes = 0 # represent the number of nodes in DHT
+$endNode = 0 # represent the value of last node
+$startNode = nil # represent the value of fist node
 $data = Array.new # array that receive the data from input file
 $output = Array.new # array that receive the output to write
 $route = Array.new # array that receive the route
-$opHashKeys =  Hash.new
-$opHashRoute =  Hash.new
+$opHashKeys =  Hash.new # hash that keep the keys of a node
+$opHashRoute =  Hash.new # hash that keep the route of a node
 
 
-#TODO: Read from stdin
+#Read from stdin
 def readFile
     STDIN.read.split("\n").each do |line|
          if line != " " or line != ""
@@ -49,6 +51,7 @@ def createKeys(keyvalue)
     return keys
 end
 
+#Update the table of keys after insert a new node
 def updateTable(keyValue)
     if(keyValue == $endNode)
         updateTableArray($startNode,keyValue)
@@ -62,6 +65,7 @@ def updateTable(keyValue)
     end
 end
 
+# update Keys value
 def updateTableArray(i,keyvalue)
     keysArray = $opHashKeys[i]
     if(!keysArray.empty?)
@@ -72,24 +76,13 @@ def updateTableArray(i,keyvalue)
     end
 end
 
-#def updateTable (keyValue)
-#    for i in (keyValue + 1)  .. $endNode
-#        if($opHashKeys[i] != nil && $opHashKeys[i] != "")
-#            $opHashKeys[i] = createKeys(i)
-#            break
-#        end
-#    end
-#end
 
-#Cria tabela de rotas
+#Creat route Table
 def createRouteTable(index)
     logValue = Math::log($nNodes, 2)
     logValue = logValue.floor
     i = 0
     auxIndex = index
-    #if(auxIndex == $endNode)
-    #    auxIndex = -1
-   # end
     mValue = $endNode.to_s(2).length
     nodeOption = (auxIndex + (2**i)) % (2**mValue)
     arrayRoutes = Array.new
@@ -107,6 +100,7 @@ def createRouteTable(index)
     return arrayRoutes.sort
 end
 
+# Update Route value after insert a new node
 def updateRouteTable
     for i in $startNode .. $endNode
         if($opHashRoute[i] != nil && $opHashRoute[i] != "")
@@ -130,6 +124,7 @@ def createHash(operation)
     updateRouteTable
 end
 
+# update value of end node
 def updateEndNode
     max = $endNode - 1 
     max.downto($startNode){
@@ -186,9 +181,10 @@ def removeHash(operation)
     updateRouteTable
 end
 
+# lookup a value inside ophashkeys hash
 def lookup(nodeRoute, id, findValue, firstElement)
     keysArray = $opHashKeys[nodeRoute]
-    if keysArray.include?(findValue)
+    if (keysArray.include?(findValue) or findValue == nodeRoute)
         outputString = "#{id} L #{findValue} {#{$route.join(",")}}"
         $output.push(outputString)
     else
@@ -197,7 +193,7 @@ def lookup(nodeRoute, id, findValue, firstElement)
         routes.each { 
             |routeValue|
                 bvalue = routeValue
-                if(routeValue > findValue && routeValue != nodeRoute)
+                if(routeValue >= findValue && routeValue != nodeRoute)
                     $route.push(routeValue)
                     lookup(routeValue, id, findValue, firstElement)
                     bvalue = 0
@@ -211,6 +207,7 @@ def lookup(nodeRoute, id, findValue, firstElement)
     end 
 end
 
+# insert a new key in opHashKeys
 def insert(insertKey)
     if(insertKey > $endNode)
         keysArray =  $opHashKeys[$startNode]
@@ -253,6 +250,7 @@ def testDataReceived
     }
 end
 
+#Write result in stdout
 def writeFile(id)
     $output.each {
         |result|
